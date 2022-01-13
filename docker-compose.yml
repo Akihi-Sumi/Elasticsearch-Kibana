@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  elasticsearch:
+    build:
+      context: ./es
+      dockerfile: Dockerfile
+    container_name: Esearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - logger.deprecation.level=debug
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+
+  kibana:
+    build:
+      context: ./kibana
+      dockerfile: Dockerfile
+    container_name: kibana
+    links:
+      - es:elasticsearch
+    ports:
+      - 5601:5601
+    restart: always
+    environment:
+      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
+
+volumes:
+  esdata:
+    driver: local
